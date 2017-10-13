@@ -15,6 +15,7 @@ Docker container with a lot of useful stuff, like:
 8) unzip
 9) uchardet
 10) git
+11) postgresql
 
 ### Docker image
 
