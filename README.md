@@ -18,6 +18,7 @@ Docker container with a lot of useful stuff, like:
 11) postgresql
 12) rabbitmq
 13) redis
+14) mongodb
 
 ### Docker image
 
