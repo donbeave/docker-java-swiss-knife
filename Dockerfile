@@ -102,6 +102,8 @@ RUN apt-get update && apt-get upgrade -y \
                mongodb-org \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
+RUN cd /etc/init.d && wget https://raw.githubusercontent.com/mongodb/mongo/master/debian/init.d -O mongod && chmod a+x mongod
+
 COPY docker-entrypoint.sh /
 RUN chmod a+x /docker-entrypoint.sh
 
