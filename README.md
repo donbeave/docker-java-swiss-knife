@@ -16,6 +16,8 @@ Docker container with a lot of useful stuff, like:
 9) uchardet
 10) git
 11) postgresql
+12) rabbitmq
+13) redis
 
 ### Docker image
 
