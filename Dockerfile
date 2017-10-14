@@ -19,6 +19,7 @@ RUN apt-get update && apt-get upgrade -y \
                unzip \
                uchardet \
                git \
+               redis-server \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
 # Install Java.
@@ -75,6 +76,21 @@ RUN echo "host    all             all             ::1/128                 trust"
 RUN echo "host    all             all             0.0.0.0/0               md5" >> /etc/postgresql/$PG_MAJOR/main/pg_hba.conf
 
 COPY postgresql.conf /etc/postgresql/$PG_MAJOR/main/
+
+# rabbitmq
+RUN echo "deb http://www.rabbitmq.com/debian/ testing main" >> /etc/apt/sources.list.d/rabbitmq.list
+RUN curl https://www.rabbitmq.com/rabbitmq-release-signing-key.asc | apt-key add - 
+
+# Update apt-get
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends \
+               rabbitmq-server \
+    && rm -rf /var/lib/apt/lists/* /tmp/*
+
+RUN rabbitmq-plugins enable --offline rabbitmq_federation
+RUN rabbitmq-plugins enable --offline rabbitmq_federation_management
+RUN rabbitmq-plugins enable --offline rabbitmq_shovel
+RUN rabbitmq-plugins enable --offline rabbitmq_shovel_management
 
 COPY docker-entrypoint.sh /
 RUN chmod a+x /docker-entrypoint.sh
