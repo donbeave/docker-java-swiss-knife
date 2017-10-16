@@ -5,20 +5,21 @@
 ### Summary
 
 Docker container with a lot of useful stuff, like:
-1) nano
-2) curl
-3) wget
-4) ssh
-5) openvpn
-6) httpie
-7) dnsutils
-8) unzip
-9) uchardet
-10) git
-11) postgresql
-12) rabbitmq
-13) redis
-14) mongodb
+1) docker in docker ;-)
+2) nano
+3) curl
+4) wget
+5) ssh
+6) openvpn
+7) httpie
+8) dnsutils
+9) unzip
+10) uchardet
+11) git
+12) postgresql
+13) rabbitmq
+14) redis
+15) mongodb
 
 ### Docker image
 

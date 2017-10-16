@@ -5,21 +5,22 @@ MAINTAINER Alexey Zhokhov <alexey@zhokhov.com>
 # Update apt-get
 RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends \
-               nano \
                ca-certificates \
-               curl \
-               wget \
+               apt-transport-https \
                ssh \
                net-tools \
                openvpn \
                software-properties-common \
                procps \
-               httpie \
                dnsutils \
                unzip \
                uchardet \
                git \
                redis-server \
+               nano \
+               curl \
+               wget \
+               httpie \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
 # Install Java.
@@ -103,6 +104,20 @@ RUN apt-get update && apt-get upgrade -y \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
 RUN cd /etc/init.d && wget https://raw.githubusercontent.com/mongodb/mongo/master/debian/init.d -O mongod && chmod a+x mongod
+
+# docker
+RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+RUN apt-key fingerprint 0EBFCD88
+RUN add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
+
+# Update apt-get
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y \
+               docker-ce \
+    && rm -rf /var/lib/apt/lists/* /tmp/*
 
 COPY docker-entrypoint.sh /
 RUN chmod a+x /docker-entrypoint.sh
