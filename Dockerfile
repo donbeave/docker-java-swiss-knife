@@ -124,4 +124,4 @@ RUN chmod a+x /docker-entrypoint.sh
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
-CMD ["/bin/sleep", "300]
+CMD ["tail", "-f", "/dev/null"]
