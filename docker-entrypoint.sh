@@ -11,4 +11,6 @@ if [ "$DNS_SERVER_IP" ]; then
     echo "DNS_SERVER_IP: ${DNS_SERVER_IP}"
 fi
 
+source $HOME/.sdkman/bin/sdkman-init.sh
+
 exec "$@"
