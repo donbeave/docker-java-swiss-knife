@@ -20,6 +20,7 @@ Docker container with a lot of useful stuff, like:
 13) rabbitmq
 14) redis
 15) mongodb
+16) kubectl
 
 ### Docker image
 
