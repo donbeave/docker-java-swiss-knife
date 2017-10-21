@@ -21,6 +21,7 @@ Docker container with a lot of useful stuff, like:
 14) redis
 15) mongodb
 16) kubectl
+17) groovy
 
 ### Docker image
 
