@@ -1,9 +1,12 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 MAINTAINER Alexey Zhokhov <alexey@zhokhov.com>
 
+ENV DEBIAN_FRONTEND noninteractive
+
 # Update apt-get
-RUN apt-get update && apt-get upgrade -y \
+RUN apt-get update \
+    && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends \
                ca-certificates \
                apt-transport-https \
@@ -22,22 +25,28 @@ RUN apt-get update && apt-get upgrade -y \
                curl \
                wget \
                httpie \
-    && rm -rf /var/lib/apt/lists/* /tmp/*
+               gpg-agent \
+               dirmngr \
+    && rm -rf /var/lib/apt/lists/* \
+              /tmp/*
 
 # Install Java.
-RUN \
-  echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
-  add-apt-repository -y ppa:webupd8team/java && \
-  apt-get update && apt-get upgrade -y && \
-  apt-get install -y oracle-java8-installer && \
-  rm -rf /var/lib/apt/lists/* && \
-  rm -rf /var/cache/oracle-jdk8-installer
+RUN echo oracle-java11-installer shared/accepted-oracle-license-v1-2 select true | /usr/bin/debconf-set-selections \
+    && echo oracle-java11-installer shared/accepted-oracle-licence-v1-2 boolean true | /usr/bin/debconf-set-selections \
+    && add-apt-repository ppa:linuxuprising/java \
+    && apt-get update \
+    && apt-get upgrade -y \
+    && apt install -y oracle-java11-installer \
+                      oracle-java11-set-default \
+    && rm -rf /var/lib/apt/lists/* \
+              /tmp/* \
+              /var/cache/oracle-jdk11-installer
 
 # Define commonly used JAVA_HOME variable
-ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
+ENV JAVA_HOME /usr/lib/jvm/java-11-oracle
 
 # postgresql
-RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main" >> /etc/apt/sources.list.d/pgdg.list 
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main" >> /etc/apt/sources.list.d/pgdg.list 
 RUN curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - 
 
 # Update apt-get
@@ -80,7 +89,7 @@ RUN echo "host    all             all             0.0.0.0/0               md5" >
 COPY postgresql.conf /etc/postgresql/$PG_MAJOR/main/
 
 # rabbitmq
-RUN echo "deb http://www.rabbitmq.com/debian/ testing main" >> /etc/apt/sources.list.d/rabbitmq.list
+RUN echo "deb https://dl.bintray.com/rabbitmq/debian bionic main" >> /etc/apt/sources.list.d/rabbitmq.list
 RUN curl https://www.rabbitmq.com/rabbitmq-release-signing-key.asc | apt-key add - 
 
 # Update apt-get
@@ -95,11 +104,12 @@ RUN rabbitmq-plugins enable --offline rabbitmq_shovel
 RUN rabbitmq-plugins enable --offline rabbitmq_shovel_management
 
 # mongodb
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
-RUN echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse" >> /etc/apt/sources.list.d/mongodb-org-3.4.list
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 9DA31620334BD75D9DCB49F368818C72E52529D4
+RUN echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.0 multiverse" >> /etc/apt/sources.list.d/mongodb-org-4.0.list
 
 # Update apt-get
-RUN apt-get update && apt-get upgrade -y \
+RUN apt-get update \
+    && apt-get upgrade -y \
     && apt-get install -y \
                mongodb-org \
     && rm -rf /var/lib/apt/lists/* /tmp/*
