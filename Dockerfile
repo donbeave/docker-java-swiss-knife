@@ -133,7 +133,14 @@ RUN apt-get update && apt-get upgrade -y \
 # Node.js
 RUN curl -sL https://deb.nodesource.com/setup_11.x | bash -
 RUN apt-get update && apt-get upgrade -y \
-    && apt-get install -y nodejs \
+    && apt-get install -y nodejs gcc g++ make \
+    && rm -rf /var/lib/apt/lists/* /tmp/*
+
+# Yarn
+RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y yarn \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
 # kubectl
