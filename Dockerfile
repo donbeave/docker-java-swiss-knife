@@ -89,8 +89,10 @@ RUN echo "host    all             all             0.0.0.0/0               md5" >
 COPY postgresql.conf /etc/postgresql/$PG_MAJOR/main/
 
 # rabbitmq
-RUN echo "deb https://dl.bintray.com/rabbitmq/debian bionic main" >> /etc/apt/sources.list.d/rabbitmq.list
-RUN curl https://www.rabbitmq.com/rabbitmq-release-signing-key.asc | apt-key add - 
+RUN wget -O - "https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc" | apt-key add -
+
+RUN echo "deb https://dl.bintray.com/rabbitmq-erlang/debian bionic erlang" > /etc/apt/sources.list.d/bintray.rabbitmq.list
+RUN echo "deb https://dl.bintray.com/rabbitmq/debian bionic main" >> /etc/apt/sources.list.d/bintray.rabbitmq.list
 
 # Update apt-get
 RUN apt-get update && apt-get upgrade -y \
