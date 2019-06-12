@@ -52,13 +52,13 @@ RUN curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 # Update apt-get
 RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends \
-               postgresql-client-10 \
-               postgresql-10 \
-               postgresql-contrib-10 \
+               postgresql-client-11 \
+               postgresql-11 \
+               postgresql-contrib-11 \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 ENV PATH $PATH:/usr/lib/postgresql/$PG_MAJOR/bin
-ENV POSTGRES_HOME /usr/lib/postgresql/10/
-ENV PG_MAJOR 10
+ENV POSTGRES_HOME /usr/lib/postgresql/11/
+ENV PG_MAJOR 11
 ENV PGDATA /var/lib/postgresql/data
 
 ENV LANGUAGE en_US.UTF-8
