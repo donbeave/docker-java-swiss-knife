@@ -70,16 +70,14 @@ RUN chmod 755 /usr/local/bin/gomplate
 RUN gomplate --version
 
 # Install Java.
-RUN echo oracle-java11-installer shared/accepted-oracle-license-v1-2 select true | /usr/bin/debconf-set-selections \
-    && echo oracle-java11-installer shared/accepted-oracle-licence-v1-2 boolean true | /usr/bin/debconf-set-selections \
-    && add-apt-repository ppa:linuxuprising/java \
-    && apt-get update \
+RUN apt-get update \
     && apt-get upgrade -y \
-    && apt install -y oracle-java11-installer \
-                      oracle-java11-set-default \
+    && apt-get install -y \
+               openjdk-11-jdk \
     && rm -rf /var/lib/apt/lists/* \
-              /tmp/* \
-              /var/cache/oracle-jdk11-installer
+              /tmp/*
+
+RUN java -version
 
 # Define commonly used JAVA_HOME variable
 ENV JAVA_HOME /usr/lib/jvm/java-11-oracle
@@ -94,7 +92,8 @@ RUN apt-get update && apt-get upgrade -y \
                postgresql-client-11 \
                postgresql-11 \
                postgresql-contrib-11 \
-    && rm -rf /var/lib/apt/lists/* /tmp/*
+    && rm -rf /var/lib/apt/lists/* \
+              /tmp/*
 ENV PATH $PATH:/usr/lib/postgresql/$PG_MAJOR/bin
 ENV POSTGRES_HOME /usr/lib/postgresql/11/
 ENV PG_MAJOR 11
