@@ -1,8 +1,42 @@
+FROM ubuntu:18.04 AS helm3
+
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install -y \
+               ca-certificates \
+               wget \
+               git \
+               build-essential \
+    && rm -rf /var/lib/apt/lists/* \
+              /tmp/*
+
+RUN wget https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz \
+    && tar -xvf go1.12.7.linux-amd64.tar.gz \
+    && mv go /usr/local
+
+RUN export GOPATH="${HOME}/.go" \
+    && export GOROOT=/usr/local/go \
+    && export PATH="$PATH:${GOPATH}/bin:${GOROOT}/bin" \
+    && mkdir -p "${GOPATH}" \
+    && mkdir -p "${GOPATH}/src/github.com" \
+    && cd $GOPATH/src/ \
+    && mkdir -p helm.sh \
+    && cd helm.sh \
+    && git clone https://github.com/helm/helm.git \
+    && cd helm \
+    && git checkout dev-v3 \
+    && make bootstrap build
+
 FROM ubuntu:18.04
 
 MAINTAINER Alexey Zhokhov <alexey@zhokhov.com>
 
 ENV DEBIAN_FRONTEND noninteractive
+
+# Install Helm 3
+COPY --from=helm3 /root/.go/src/helm.sh/helm/bin/helm /usr/local/bin/helm
+
+RUN helm version
 
 # Update apt-get
 RUN apt-get update \
@@ -29,6 +63,11 @@ RUN apt-get update \
                dirmngr \
     && rm -rf /var/lib/apt/lists/* \
               /tmp/*
+
+# Install gomplate
+RUN curl -o /usr/local/bin/gomplate -sSL https://github.com/hairyhenderson/gomplate/releases/download/v3.5.0/gomplate_linux-amd64-slim
+RUN chmod 755 /usr/local/bin/gomplate
+RUN gomplate --version
 
 # Install Java.
 RUN echo oracle-java11-installer shared/accepted-oracle-license-v1-2 select true | /usr/bin/debconf-set-selections \
