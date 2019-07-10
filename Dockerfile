@@ -1,44 +1,34 @@
-FROM ubuntu:18.04 AS helm3
-
-RUN apt-get update \
-    && apt-get upgrade -y \
-    && apt-get install -y \
-               ca-certificates \
-               wget \
-               git \
-               build-essential \
-    && rm -rf /var/lib/apt/lists/* \
-              /tmp/*
-
-RUN wget https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz \
-    && tar -xvf go1.12.7.linux-amd64.tar.gz \
-    && mv go /usr/local
-
-RUN export GOPATH="${HOME}/.go" \
-    && export GOROOT=/usr/local/go \
-    && export PATH="$PATH:${GOPATH}/bin:${GOROOT}/bin" \
-    && mkdir -p "${GOPATH}" \
-    && mkdir -p "${GOPATH}/src/github.com" \
-    && cd $GOPATH/src/ \
-    && mkdir -p helm.sh \
-    && cd helm.sh \
-    && git clone https://github.com/helm/helm.git \
-    && cd helm \
-    && git checkout dev-v3 \
-    && make bootstrap build
-
-FROM ubuntu:18.04
+FROM openjdk:11.0.3-jdk-stretch
 
 MAINTAINER Alexey Zhokhov <alexey@zhokhov.com>
 
 ENV DEBIAN_FRONTEND noninteractive
 
-# Install Helm 3
-COPY --from=helm3 /root/.go/src/helm.sh/helm/bin/helm /usr/local/bin/helm
 
-RUN helm version
+RUN java -version
 
-# Update apt-get
+
+# Locale config
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends \
+               locales \
+    && rm -rf /var/lib/apt/lists/* \
+              /tmp/*
+
+ENV LANGUAGE en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LC_ALL en_US.UTF-8
+
+RUN locale-gen en_US.UTF-8
+
+ADD locale.sh /
+RUN chmod a+x /locale.sh
+RUN /locale.sh
+# @end Locale config
+
+
+# Install basic dependencies
 RUN apt-get update \
     && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends \
@@ -63,59 +53,37 @@ RUN apt-get update \
                dirmngr \
     && rm -rf /var/lib/apt/lists/* \
               /tmp/*
+# @end Install basic dependencies
 
-# Install gomplate
-RUN curl -o /usr/local/bin/gomplate -sSL https://github.com/hairyhenderson/gomplate/releases/download/v3.5.0/gomplate_linux-amd64-slim
-RUN chmod 755 /usr/local/bin/gomplate
-RUN gomplate --version
 
-# Install Java.
+# Install PostgreSQL
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main" >> /etc/apt/sources.list.d/pgdg.list
+RUN curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 RUN apt-get update \
     && apt-get upgrade -y \
-    && apt-get install -y \
-               openjdk-11-jdk \
-    && rm -rf /var/lib/apt/lists/* \
-              /tmp/*
-
-RUN java -version
-
-# Define commonly used JAVA_HOME variable
-ENV JAVA_HOME /usr/lib/jvm/java-11-oracle
-
-# postgresql
-RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main" >> /etc/apt/sources.list.d/pgdg.list 
-RUN curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - 
-
-# Update apt-get
-RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends \
                postgresql-client-11 \
                postgresql-11 \
                postgresql-contrib-11 \
     && rm -rf /var/lib/apt/lists/* \
               /tmp/*
+
 ENV PATH $PATH:/usr/lib/postgresql/$PG_MAJOR/bin
 ENV POSTGRES_HOME /usr/lib/postgresql/11/
 ENV PG_MAJOR 11
 ENV PGDATA /var/lib/postgresql/data
 
-ENV LANGUAGE en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LC_ALL en_US.UTF-8
-
-RUN locale-gen en_US.UTF-8
-
-ADD locale.sh /
-RUN chmod a+x /locale.sh
-RUN /locale.sh
-
 # make the sample config easier to munge (and "correct by default")
 RUN mv -v "/usr/share/postgresql/$PG_MAJOR/postgresql.conf.sample" /usr/share/postgresql/ \
-  && ln -sv ../postgresql.conf.sample "/usr/share/postgresql/$PG_MAJOR/" \
-  && sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/share/postgresql/postgresql.conf.sample
+    && ln -sv ../postgresql.conf.sample "/usr/share/postgresql/$PG_MAJOR/" \
+    && sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/share/postgresql/postgresql.conf.sample
 
-RUN mkdir -p /var/run/postgresql && chown -R postgres:postgres /var/run/postgresql && chmod 2777 /var/run/postgresql
-RUN mkdir -p "$PGDATA" && chown -R postgres:postgres "$PGDATA" && chmod 777 "$PGDATA" # this 777 will be replaced by 700 at runtime (allows semi-arbitrary "--user" values)
+RUN mkdir -p /var/run/postgresql \
+    && chown -R postgres:postgres /var/run/postgresql \
+    && chmod 2777 /var/run/postgresql
+RUN mkdir -p "$PGDATA" \
+    && chown -R postgres:postgres "$PGDATA" \
+    && chmod 777 "$PGDATA" # this 777 will be replaced by 700 at runtime (allows semi-arbitrary "--user" values)
 
 # Adjust PostgreSQL configuration so that remote connections to the
 # database are possible.
@@ -125,74 +93,104 @@ RUN echo "host    all             all             ::1/128                 trust"
 RUN echo "host    all             all             0.0.0.0/0               md5" >> /etc/postgresql/$PG_MAJOR/main/pg_hba.conf
 
 COPY postgresql.conf /etc/postgresql/$PG_MAJOR/main/
+# @end Install PostgreSQL
 
-# rabbitmq
+
+# Install RabbitMQ
 RUN wget -O - "https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc" | apt-key add -
 
-RUN echo "deb https://dl.bintray.com/rabbitmq-erlang/debian bionic erlang" > /etc/apt/sources.list.d/bintray.rabbitmq.list
-RUN echo "deb https://dl.bintray.com/rabbitmq/debian bionic main" >> /etc/apt/sources.list.d/bintray.rabbitmq.list
+RUN echo "deb https://dl.bintray.com/rabbitmq-erlang/debian stretch erlang" > /etc/apt/sources.list.d/bintray.rabbitmq.list
+RUN echo "deb https://dl.bintray.com/rabbitmq/debian stretch main" >> /etc/apt/sources.list.d/bintray.rabbitmq.list
 
-# Update apt-get
-RUN apt-get update && apt-get upgrade -y \
+RUN apt-get update \
+    && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends \
                rabbitmq-server \
-    && rm -rf /var/lib/apt/lists/* /tmp/*
+    && rm -rf /var/lib/apt/lists/* \
+              /tmp/*
 
 RUN rabbitmq-plugins enable --offline rabbitmq_federation
 RUN rabbitmq-plugins enable --offline rabbitmq_federation_management
 RUN rabbitmq-plugins enable --offline rabbitmq_shovel
 RUN rabbitmq-plugins enable --offline rabbitmq_shovel_management
+# @end Install RabbitMQ
 
-# mongodb
+
+# Install MongoDB
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 9DA31620334BD75D9DCB49F368818C72E52529D4
-RUN echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.0 multiverse" >> /etc/apt/sources.list.d/mongodb-org-4.0.list
+RUN echo "deb http://repo.mongodb.org/apt/debian stretch/mongodb-org/4.0 main" >> /etc/apt/sources.list.d/mongodb-org-4.0.list
 
-# Update apt-get
 RUN apt-get update \
     && apt-get upgrade -y \
     && apt-get install -y \
                mongodb-org \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
-RUN cd /etc/init.d && wget https://raw.githubusercontent.com/mongodb/mongo/master/debian/init.d -O mongod && chmod a+x mongod
+RUN cd /etc/init.d \
+    && wget https://raw.githubusercontent.com/mongodb/mongo/master/debian/init.d -O mongod \
+    && chmod a+x mongod
+# Install MongoDB
 
-# docker
-RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+
+# Install Docker
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends \
+               apt-transport-https \
+               ca-certificates \
+               curl \
+               gnupg2 \
+               software-properties-common \
+    && rm -rf /var/lib/apt/lists/* \
+              /tmp/*
+RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
 RUN apt-key fingerprint 0EBFCD88
-RUN add-apt-repository \
-   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-   $(lsb_release -cs) \
-   stable"
-
-# Update apt-get
-RUN apt-get update && apt-get upgrade -y \
+RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+RUN apt-get update \
+    && apt-get upgrade -y \
     && apt-get install -y \
                docker-ce \
-    && rm -rf /var/lib/apt/lists/* /tmp/*
+               docker-ce-cli \
+               containerd.io \
+    && rm -rf /var/lib/apt/lists/* \
+              /tmp/*
+# @end Install Docker
 
-# Node.js
+
+# Install Node.js
 RUN curl -sL https://deb.nodesource.com/setup_11.x | bash -
-RUN apt-get update && apt-get upgrade -y \
-    && apt-get install -y nodejs gcc g++ make \
-    && rm -rf /var/lib/apt/lists/* /tmp/*
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install -y \
+               nodejs \
+               gcc \
+               g++ \
+               make \
+    && rm -rf /var/lib/apt/lists/* \
+              /tmp/*
+# @end Install Node.js
 
-# Yarn
+
+# Install Yarn
 RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN apt-get update && apt-get upgrade -y \
+RUN apt-get update \
+    && apt-get upgrade -y \
     && apt-get install -y yarn \
-    && rm -rf /var/lib/apt/lists/* /tmp/*
+    && rm -rf /var/lib/apt/lists/* \
+              /tmp/*
+# @end Install Yarn
 
-# kubectl
-RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
-RUN chmod +x ./kubectl
-RUN mv ./kubectl /usr/local/bin/kubectl
 
-# sdkman
+# Install SDKMAN
 RUN curl -s "https://get.sdkman.io" | bash
+# @end Install SDKMAN
 
-# groovy
+
+# Install Groovy
 RUN bash -c "source $HOME/.sdkman/bin/sdkman-init.sh && sdk install groovy"
+# @end Install Groovy
+
 
 COPY docker-entrypoint.sh /
 RUN chmod a+x /docker-entrypoint.sh
