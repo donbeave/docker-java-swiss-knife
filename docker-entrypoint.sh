@@ -1,11 +1,5 @@
 #!/bin/bash
 
-set +e
-
-mkdir -p /dev/net
-mknod /dev/net/tun c 10 200
-chmod 600 /dev/net/tun
-
 DOCKER_VERSION=$(docker --version)
 REDIS_VERSION=$(redis-server --version)
 POSTGRESQL_VERSION=$(psql --version)
@@ -22,14 +16,12 @@ printf "\e[1;37m%s\e[0m %s\n" "MONGODB" "${MONGODB_VERSION}"
 
 printf "\n------\n"
 
-set -e
-
 if [ "$DNS_SERVER_IP" ]; then
   echo "nameserver ${DNS_SERVER_IP}" >/etc/resolv.conf
 
   echo "DNS_SERVER_IP: ${DNS_SERVER_IP}"
 fi
 
-[[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
+#[[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
 
 exec "$@"
