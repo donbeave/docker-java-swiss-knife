@@ -184,11 +184,12 @@ RUN apt-get update \
 
 # Install SDKMAN
 RUN curl -s "https://get.sdkman.io" | bash
+ENV SDKMAN_DIR=/root/.sdkman
 # @end Install SDKMAN
 
 
 # Install Groovy
-RUN bash -c "source $HOME/.sdkman/bin/sdkman-init.sh && sdk install groovy"
+RUN bash -c "source $SDKMAN_DIR/bin/sdkman-init.sh && sdk install groovy"
 # @end Install Groovy
 
 
