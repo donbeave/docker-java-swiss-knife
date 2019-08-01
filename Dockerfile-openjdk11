@@ -193,6 +193,18 @@ RUN bash -c "source $SDKMAN_DIR/bin/sdkman-init.sh && sdk install groovy"
 # @end Install Groovy
 
 
+# Install AWS CLI
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install -y \
+               python3 \
+               python3-pip \
+    && rm -rf /var/lib/apt/lists/* \
+              /tmp/* \
+    && pip3 install awscli
+# @end Install AWS CLI
+
+
 COPY docker-entrypoint.sh /
 RUN chmod a+x /docker-entrypoint.sh
 
