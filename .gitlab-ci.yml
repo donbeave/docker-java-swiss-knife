@@ -1,0 +1,36 @@
+image: alpine:3.10.1
+
+services:
+  - docker:dind
+
+variables:
+  # Need to setup DOCKER_HOST to enable Docker in GitLab Cloud CI
+  DOCKER_HOST: tcp://docker:2375
+  # https://gitlab.com/gitlab-org/gitlab-runner/issues/4501
+  DOCKER_TLS_CERTDIR: ""
+  # When using dind, it's wise to use the overlayfs driver for
+  # improved performance.
+  DOCKER_DRIVER: overlay2
+
+stages:
+  - build
+
+build openjdk11:
+  stage: build
+  before_script:
+    - apk add bash
+    - apk add docker
+    - docker info
+  script:
+    - ./build-docker.sh openjdk11
+    - ./upload-docker.sh openjdk11
+
+build openjdk8:
+  stage: build
+  before_script:
+    - apk add bash
+    - apk add docker
+    - docker info
+  script:
+    - ./build-docker.sh openjdk8
+    - ./upload-docker.sh openjdk8
