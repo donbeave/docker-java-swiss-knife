@@ -2,23 +2,33 @@
 
 set +e
 
-DOCKER_VERSION=$(docker --version)
-REDIS_VERSION=$(redis-server --version)
-POSTGRESQL_VERSION=$(psql --version)
-RABBITMQ_VERSION=$(rabbitmqctl version)
-MONGODB_VERSION=$(mongod --version)
-NODEJS_VERSION=$(node --version)
+printf "\e[1;37m%s\e[0m\n" "JAVA"
+java -version
+echo ""
 
-printf "\n------\n"
+printf "\e[1;37m%s\e[0m\n" "DOCKER"
+docker --version
+echo ""
 
-printf "\e[1;37m%s\e[0m %s\n" "DOCKER" "${DOCKER_VERSION}"
-printf "\e[1;37m%s\e[0m %s\n" "REDIS" "${REDIS_VERSION}"
-printf "\e[1;37m%s\e[0m %s\n" "POSTGRESQL" "${POSTGRESQL_VERSION}"
-printf "\e[1;37m%s\e[0m %s\n" "RABBITMQ" "${RABBITMQ_VERSION}"
-printf "\e[1;37m%s\e[0m %s\n" "NODEJS" "${NODEJS_VERSION}"
-printf "\e[1;37m%s\e[0m %s\n" "MONGODB" "${MONGODB_VERSION}"
+printf "\e[1;37m%s\e[0m\n" "REDIS"
+redis-server --version
+echo ""
 
-printf "\n------\n"
+printf "\e[1;37m%s\e[0m\n" "POSTGRESQL"
+psql --version
+echo ""
+
+printf "\e[1;37m%s\e[0m\n" "RABBITMQ"
+rabbitmqctl version
+echo ""
+
+printf "\e[1;37m%s\e[0m\n" "MONGODB"
+mongod --version
+echo ""
+
+printf "\e[1;37m%s\e[0m\n" "NODEJS"
+node --version
+echo ""
 
 set -e
 
