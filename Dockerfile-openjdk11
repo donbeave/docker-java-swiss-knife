@@ -205,6 +205,13 @@ RUN apt-get update \
 # @end Install AWS CLI
 
 
+# Install MinIO Client
+RUN curl -o /usr/local/bin/mc -sSL https://dl.min.io/client/mc/release/linux-amd64/mc
+RUN chmod +x /usr/local/bin/mc
+RUN /usr/local/bin/mc --version
+# @end Install MinIO Client
+
+
 COPY docker-entrypoint.sh /
 RUN chmod a+x /docker-entrypoint.sh
 
