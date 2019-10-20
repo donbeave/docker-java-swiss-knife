@@ -42,6 +42,8 @@ RUN apt-get update \
                dnsutils \
                unzip \
                zip \
+               p7zip \
+               p7zip-full \ 
                uchardet \
                git \
                redis-server \
