@@ -15,22 +15,12 @@ variables:
 stages:
   - build
 
-build openjdk11:
+build:
   stage: build
   before_script:
     - apk add bash
     - apk add docker
     - docker info
   script:
-    - ./build-docker.sh openjdk11
-    - ./upload-docker.sh openjdk11
-
-build openjdk8:
-  stage: build
-  before_script:
-    - apk add bash
-    - apk add docker
-    - docker info
-  script:
-    - ./build-docker.sh openjdk8
-    - ./upload-docker.sh openjdk8
+    - ./build-docker.sh
+    - ./upload-docker.sh

@@ -6,7 +6,7 @@ set -e
 
 # config
 PACKAGE="java-swiss-knife"
-VERSION=${1:-"openjdk11"}
+VERSION="latest"
 DOCKER_REPOSITORY="donbeave/$PACKAGE"
 # @end config
 
