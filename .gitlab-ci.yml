@@ -15,12 +15,12 @@ variables:
 stages:
   - build
 
-build:
+build-and-upload:
   stage: build
   before_script:
     - apk add bash
     - apk add docker
-    - docker info
   script:
+    - docker info
     - ./build-docker.sh
     - ./upload-docker.sh
