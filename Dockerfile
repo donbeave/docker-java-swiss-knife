@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM debian:buster
 
 MAINTAINER Alexey Zhokhov <alexey@zhokhov.com>
 
