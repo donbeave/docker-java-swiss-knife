@@ -11,6 +11,14 @@ RUN /scripts/install_locales_utf8.sh
 RUN /scripts/install_adoptopenjdk13_hotspot.sh
 RUN /scripts/install_docker.sh
 RUN /scripts/install_p7zip.sh
+RUN /scripts/install_xvfb.sh
+RUN /scripts/install_google_chrome.sh
+RUN /scripts/install_chrome_driver.sh
+
+ADD files/xvfb_init.sh /etc/init.d/xvfb
+RUN chmod a+x /etc/init.d/xvfb
+
+ENV DISPLAY :99
 
 # additional packages
 RUN apt-get update -y \
