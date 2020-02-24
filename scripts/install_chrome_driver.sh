@@ -1,6 +1,12 @@
 #!/bin/bash
 set -eux
 
+/scripts/update.sh
+
+apt-get install -y \
+  curl \
+  unzip
+
 CHROMEDRIVER_VERSION=$(curl -sS https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
 mkdir -p /opt/chromedriver-"$CHROMEDRIVER_VERSION"
 curl -sS -o /tmp/chromedriver_linux64.zip http://chromedriver.storage.googleapis.com/"$CHROMEDRIVER_VERSION"/chromedriver_linux64.zip
