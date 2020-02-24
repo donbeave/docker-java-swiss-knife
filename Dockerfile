@@ -12,6 +12,25 @@ RUN /scripts/install_adoptopenjdk13_hotspot.sh
 RUN /scripts/install_docker.sh
 RUN /scripts/install_p7zip.sh
 
+# additional packages
+RUN apt-get update -y \
+    && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends \
+               procps \
+               net-tools \
+               iputils-ping \
+               dnsutils \
+               curl \
+               wget \
+               httpie \
+               gnupg \
+               psmisc \
+               openvpn \
+               unzip \
+    && rm -rf /var/lib/apt/lists/* \
+              /var/cache/apt/* \
+              /tmp/*
+
 ENV JAVA_HOME=/opt/java/adoptopenjdk13 \
     PATH="/opt/java/adoptopenjdk13/bin:$PATH"
 
