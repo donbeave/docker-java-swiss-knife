@@ -7,7 +7,7 @@ set -e
 # config
 PACKAGE="java-swiss-knife"
 VERSION="latest"
-DOCKER_REPOSITORY="donbeave/$PACKAGE"
+DOCKER_REPOSITORY="registry.gitlab.com/donbeave/docker-java-swiss-knife"
 # @end config
 
 printf "> \e[1;37mUploading Docker\e[0m\n\n"
