@@ -24,7 +24,7 @@ fi
 
 printf "# \e[93mLogin to the registry\e[0m\n\n"
 
-docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
+docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}" registry.gitlab.com
 
 printf "\n> \e[1;37mUploading Docker image\e[0m\n"
 printf "# Image \e[1;37m%s\e[0m\n\n" "${DOCKER_REPOSITORY}:${VERSION}"
